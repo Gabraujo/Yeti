@@ -2,7 +2,7 @@
 FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY . .
-RUN chmod +x mvnw && ./mvnw -DskipTests package
+RUN chmod +x mvnw && ./mvnw -B -Dmaven.repo.local=/root/.m2/repository -DskipTests clean package
 
 # Runtime stage: slim JRE only
 FROM eclipse-temurin:17-jre
