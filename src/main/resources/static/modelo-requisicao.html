@@ -1,0 +1,1183 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Requisicao de Material - Modelo</title>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer data-jspdf="true"></script>
+  <style>
+    :root {
+      --ink: #1f2328;
+      --muted: #5b6670;
+      --accent: #1f5fbf;
+      --accent-2: #6fa2ff;
+      --paper: #f7f3ea;
+      --panel: #ffffff;
+      --line: #e5ddd0;
+      --shadow: 0 12px 28px rgba(20, 24, 28, 0.12);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Merriweather", "Georgia", "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 800px at 10% 0%, #fef9ef 0%, transparent 60%),
+        radial-gradient(900px 700px at 90% 10%, #f0f7ee 0%, transparent 60%),
+        var(--paper);
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: #0e1a2b;
+      color: #e7f0ea;
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sidebar-toggle {
+      display: none;
+      background: #0e1a2b;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      cursor: pointer;
+      margin: 16px;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sidebar-toggle span {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: #ffffff;
+      border-radius: 999px;
+    }
+
+    .menu-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 12, 20, 0.35);
+      z-index: 15;
+    }
+
+    .brand {
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-size: 14px;
+      color: #cfe1ff;
+    }
+
+    .nav-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(231, 240, 234, 0.6);
+      margin-bottom: 8px;
+    }
+
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: #e7f0ea;
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+      background: transparent;
+      border: 1px solid transparent;
+    }
+
+    .nav-item a:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-item a.active {
+      background: rgba(14, 109, 63, 0.35);
+      border-color: rgba(14, 109, 63, 0.6);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .side-meta {
+      margin-top: auto;
+      font-size: 12px;
+      color: rgba(231, 240, 234, 0.6);
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 24px auto 56px;
+      padding: 20px;
+    }
+
+    header {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 0%, rgba(14, 109, 63, 0.08) 45%, transparent 85%);
+      pointer-events: none;
+    }
+
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .span-6 { grid-column: span 6; }
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+      font-size: 15px;
+      background: #fffdf8;
+    }
+
+    textarea { min-height: 90px; resize: vertical; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+    }
+
+    thead th {
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 8px 10px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+    }
+
+    tbody td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .badge {
+      background: rgba(14, 109, 63, 0.12);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: #fff;
+      color: var(--accent);
+      border: 1px solid rgba(14, 109, 63, 0.4);
+    }
+
+    .footer-note {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      align-items: end;
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+    }
+
+    .table-actions .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .table-actions input {
+      min-width: 140px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-xs { padding: 6px 10px; }
+
+    .btn-ghost {
+      background: #fff;
+      color: var(--accent);
+      border: 1px solid rgba(31, 95, 191, 0.4);
+    }
+
+    .table-input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+      font-size: 14px;
+      background: #fffdf8;
+    }
+
+    .modo-setor .col-lotes {
+      display: none;
+    }
+
+    .acoes-cell {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .col-acoes {
+      display: none;
+      text-align: right;
+    }
+
+    .modo-setor .col-acoes {
+      display: table-cell;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      background: #1f5fbf;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 10px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+      z-index: 80;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 12, 20, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      backdrop-filter: blur(2px);
+    }
+
+    .modal-backdrop.show { display: flex; }
+
+    .modal-window {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+      max-width: 820px;
+      width: min(92vw, 820px);
+      max-height: 90vh;
+      overflow: auto;
+      padding: 24px 26px;
+      border: 1px solid #d8d3c8;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .modal-headline {
+      margin: 0 0 6px 0;
+      font-size: 22px;
+    }
+
+    .modal-meta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-family: "Source Sans 3", "Trebuchet MS", sans-serif;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    body.modal-open .shell {
+      filter: blur(4px);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 260px;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        z-index: 20;
+        display: flex;
+      }
+      .shell.menu-open .sidebar { transform: translateX(0); }
+      .shell.menu-open .page { transform: translateX(260px); }
+      .page { transition: transform 0.25s ease; }
+      .sidebar-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .menu-backdrop.show { display: block; }
+      .span-6, .span-4, .span-8, .span-3 { grid-column: span 12; }
+    }
+  </style>
+</head>
+<body>
+  <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Abrir menu" aria-expanded="false" type="button">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <div class="menu-backdrop" id="menu-backdrop"></div>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">Yeti</div>
+      <div class="nav-group">
+        <div class="nav-title">Principal</div>
+        <div class="nav-item"><a class="active" href="#home" data-view="home">Requisicao</a></div>
+        <div class="nav-item"><a href="#historico" data-view="historico">Historico</a></div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-title">Setores</div>
+        <div class="nav-item"><a href="#linha-purificador" data-setor="linha-purificador">Linha Purificador</a></div>
+        <div class="nav-item"><a href="#pre-montagem" data-setor="pre-montagem">Pre-montagem</a></div>
+        <div class="nav-item"><a href="#compressor" data-setor="compressor">Compressor</a></div>
+        <div class="nav-item"><a href="#indef" data-setor="indef">Indef</a></div>
+      </div>
+    </aside>
+
+    <main class="page" id="home">
+      <header id="page-header">
+        <h1>Requisicao de Material</h1>
+        <div class="actions">
+          <button class="btn btn-primary" id="btn-requisitar" type="button">Requisitar</button>
+          <div class="status">
+            <span class="badge">Aberta</span>
+            <span>Ultima atualizacao: 16/03/2026</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="grid">
+        <div id="historico-card" class="card span-12" style="display: none;">
+          <label>Historico de requisicoes</label>
+          <div class="table-actions">
+            <div class="field">
+              <button class="btn btn-ghost" id="btn-limpar-historico" type="button">Limpar historico</button>
+            </div>
+            <div class="field" style="color: var(--muted); font-size: 13px;">
+              Selecione uma linha para ver detalhes ou clique em PDF para baixar o registro.
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Funcionario</th>
+                <th>Data</th>
+                <th>Horario</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody id="historico-body"></tbody>
+          </table>
+          <p class="footer-note">Registros ordenados do mais recente para o mais antigo. Clique em uma linha para ver os itens requisitados.</p>
+        </div>
+        <div id="form-fields" class="span-12" style="display: contents;">
+          <div class="card span-6">
+            <label for="funcionario">Funcionario</label>
+            <input id="funcionario" placeholder="Nome completo" />
+          </div>
+          <div class="card span-3">
+            <label for="setor">Setor</label>
+            <select id="setor">
+              <option>Linha Purificador</option>
+              <option>Pre-montagem</option>
+              <option>Compressor</option>
+              <option>Indef</option>
+            </select>
+          </div>
+          <div class="card span-3">
+            <label for="data">Data da requisicao</label>
+            <input id="data" placeholder="16/03/2026" />
+          </div>
+        </div>
+
+        <div id="setor-titulo" class="card span-12" style="display: none;">
+          <strong>Itens do setor</strong>
+        </div>
+
+        <div class="card span-12" id="itens-card">
+          <label>Itens</label>
+          <table>
+            <thead>
+              <tr>
+              <th>Codigo</th>
+              <th>Descricao do item</th>
+              <th>Quantidade</th>
+              <th>Lotes</th>
+              <th class="col-acoes">Acoes</th>
+              </tr>
+            </thead>
+            <tbody id="itens-body"></tbody>
+          </table>
+          <p class="footer-note">Inclua todos os itens do mesmo setor nesta requisicao.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modal-backdrop" role="dialog" aria-modal="true" aria-label="Itens da requisicao" style="display: none;">
+    <div class="modal-window" id="modal-window">
+      <button class="modal-close" id="modal-close" aria-label="Fechar">×</button>
+      <h2 class="modal-headline" id="modal-title">Requisicao</h2>
+      <div class="modal-meta" id="modal-meta"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Setor</th>
+            <th>Codigo</th>
+            <th>Descricao</th>
+            <th>Quantidade</th>
+            <th>Lotes</th>
+          </tr>
+        </thead>
+        <tbody id="modal-itens-body"></tbody>
+      </table>
+      <p class="footer-note" id="modal-itens-vazio" style="display: none;">Nenhum item registrado nesta requisicao.</p>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    const bodyEl = document.getElementById("itens-body");
+    const navLinks = document.querySelectorAll(".nav-item a");
+    const pageHeader = document.getElementById("page-header");
+    const formFields = document.getElementById("form-fields");
+    const setorTitulo = document.getElementById("setor-titulo");
+    const setorSelect = document.getElementById("setor");
+    const itensCard = document.getElementById("itens-card");
+    const sidebar = document.querySelector(".sidebar");
+    const toggleBtn = document.getElementById("sidebar-toggle");
+    const shell = document.querySelector(".shell");
+    const backdrop = document.getElementById("menu-backdrop");
+    const historicoCard = document.getElementById("historico-card");
+    const historicoBody = document.getElementById("historico-body");
+    const modalBackdrop = document.getElementById("modal-backdrop");
+    const modalClose = document.getElementById("modal-close");
+    const modalTitle = document.getElementById("modal-title");
+    const modalMeta = document.getElementById("modal-meta");
+    const modalItensBody = document.getElementById("modal-itens-body");
+    const modalItensVazio = document.getElementById("modal-itens-vazio");
+    const toastEl = document.getElementById("toast");
+    const requisitarBtn = document.getElementById("btn-requisitar");
+    const limparHistoricoBtn = document.getElementById("btn-limpar-historico");
+
+    const historico = [];
+    const HISTORICO_KEY = "historicoRequisicoes";
+    const itensPorSetor = new Map();
+    const setoresCache = new Map();
+    let setorAtual = "linha-purificador";
+    let viewMode = "home";
+
+    const nomeSetor = {
+      "linha-purificador": "Linha Purificador",
+      "pre-montagem": "Pre-montagem",
+      "compressor": "Compressor",
+      "indef": "Indef"
+    };
+
+    async function fetchJson(url, options = {}) {
+      const res = await fetch(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        }
+      });
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || `Erro ${res.status}`);
+      }
+      if (res.status === 204) return null;
+      return res.json();
+    }
+
+    function resetOriginalQuantidade(itens) {
+      itens.forEach((item) => {
+        item.originalQuantidade = item.quantidade;
+        item.originalLotes = item.lotes;
+      });
+    }
+
+    function mapItemFromApi(apiItem) {
+      return {
+        id: apiItem.id,
+        codigo: apiItem.code,
+        descricao: apiItem.description,
+        quantidade: String(apiItem.batches ?? ""),
+        // lotes vem vazio na UI por padrao; armazenamos o valor original para comparar alteracoes
+        lotes: "",
+        originalQuantidade: String(apiItem.batches ?? ""),
+        originalLotes: String(apiItem.batches ?? "")
+      };
+    }
+
+    async function carregarItensDoSetor(setor) {
+      const itens = await fetchJson(`/api/setores/${setor}/itens`);
+      const mapped = itens.map(mapItemFromApi);
+      resetOriginalQuantidade(mapped);
+      itensPorSetor.set(setor, mapped);
+      if (setor === setorAtual) {
+        renderTabela();
+      }
+    }
+
+    function setActiveNav(id) {
+      navLinks.forEach((link) => {
+        link.classList.toggle("active", link.getAttribute("href") === `#${id}`);
+      });
+    }
+
+    function setView(mode, setorId) {
+      viewMode = mode;
+      if (mode === "setor") {
+        pageHeader.style.display = "none";
+        formFields.style.display = "none";
+        setorTitulo.style.display = "block";
+        itensCard.classList.add("modo-setor");
+        historicoCard.style.display = "none";
+        const nome = nomeSetor[setorId] || "Setor";
+        setorTitulo.innerHTML = `<strong>Itens do setor: ${nome}</strong>`;
+      } else if (mode === "historico") {
+        pageHeader.style.display = "none";
+        formFields.style.display = "none";
+        setorTitulo.style.display = "none";
+        itensCard.classList.remove("modo-setor");
+        itensCard.style.display = "none";
+        historicoCard.style.display = "block";
+      } else {
+        pageHeader.style.display = "";
+        formFields.style.display = "contents";
+        setorTitulo.style.display = "none";
+        itensCard.classList.remove("modo-setor");
+        itensCard.style.display = "";
+        historicoCard.style.display = "none";
+      }
+    }
+
+    function renderTabela() {
+      const itens = itensPorSetor.get(setorAtual) || [];
+      const editing = viewMode === "setor";
+      bodyEl.innerHTML = "";
+
+      itens.forEach((item, index) => {
+        const quantidadeTotal = item.quantidade ?? "";
+        const lotesValor = item.lotes ?? "";
+        const lotesDisplay = (!lotesValor || Number(lotesValor) === 0) ? "" : lotesValor;
+        const row = document.createElement("tr");
+        row.dataset.id = item.id ?? "";
+        row.dataset.index = index;
+        row.innerHTML = `
+          <td><input class="table-input" value="${item.codigo || ""}" data-field="codigo" ${editing ? "" : "disabled"} /></td>
+          <td><input class="table-input" value="${item.descricao || ""}" data-field="descricao" ${editing ? "" : "disabled"} /></td>
+          <td><input class="table-input" placeholder="Quantidade" value="${quantidadeTotal}" data-field="quantidade" ${editing ? "" : ""} /></td>
+          <td class="col-lotes"><input class="table-input" placeholder="0" value="${lotesDisplay}" data-field="lotes" ${editing ? "" : ""} /></td>
+          ${editing ? `<td class="acoes-cell">
+              <button class="btn btn-primary btn-xs" data-action="save" data-id="${item.id}">Salvar</button>
+              <button class="btn btn-ghost btn-xs" data-action="delete" data-id="${item.id}">Excluir</button>
+            </td>` : ""}
+        `;
+        bodyEl.appendChild(row);
+      });
+
+      if (editing) {
+        const addRow = document.createElement("tr");
+        addRow.innerHTML = `
+          <td><input class="table-input" placeholder="Codigo" data-field="codigo" data-new="true" /></td>
+          <td><input class="table-input" placeholder="Descricao" data-field="descricao" data-new="true" /></td>
+          <td><input class="table-input" placeholder="Quantidade" data-field="quantidade" data-new="true" /></td>
+          <td class="col-lotes"><input class="table-input" placeholder="0" data-field="lotes" data-new="true" /></td>
+          <td class="acoes-cell">
+            <button class="btn btn-primary btn-xs" data-action="add">Adicionar</button>
+          </td>
+        `;
+        bodyEl.appendChild(addRow);
+      }
+    }
+
+    function lerLinha(row) {
+      return {
+        codigo: row.querySelector('[data-field="codigo"]')?.value.trim() || "",
+        descricao: row.querySelector('[data-field="descricao"]')?.value.trim() || "",
+        quantidade: Number(row.querySelector('[data-field="quantidade"]')?.value) || 0,
+        lotes: Number(row.querySelector('[data-field="lotes"]')?.value) || 0
+      };
+    }
+
+    bodyEl.addEventListener("click", async (e) => {
+      const action = e.target.dataset.action;
+      if (!action) return;
+      const row = e.target.closest("tr");
+
+      try {
+        if (action === "save") {
+          const dados = lerLinha(row);
+          const payload = {
+            code: dados.codigo,
+            description: dados.descricao,
+            quantityPerBatch: dados.quantidade,
+            batches: dados.lotes
+          };
+          await fetchJson(`/api/setores/${setorAtual}/itens/${e.target.dataset.id}`, {
+            method: "PUT",
+            body: JSON.stringify(payload)
+          });
+          await carregarItensDoSetor(setorAtual);
+        }
+
+        if (action === "delete") {
+          await fetchJson(`/api/setores/${setorAtual}/itens/${e.target.dataset.id}`, {
+            method: "DELETE"
+          });
+          await carregarItensDoSetor(setorAtual);
+        }
+
+        if (action === "add") {
+          const dados = lerLinha(row);
+          const payload = {
+            code: dados.codigo,
+            description: dados.descricao,
+            quantityPerBatch: dados.quantidade,
+            batches: dados.lotes
+          };
+          await fetchJson(`/api/setores/${setorAtual}/itens`, {
+            method: "POST",
+            body: JSON.stringify(payload)
+          });
+          await carregarItensDoSetor(setorAtual);
+        }
+      } catch (err) {
+        alert(err.message || "Erro ao salvar");
+      }
+    });
+
+    bodyEl.addEventListener("input", (e) => {
+      const row = e.target.closest("tr");
+      if (!row) return;
+      const index = Number(row.dataset.index);
+      const itens = itensPorSetor.get(setorAtual) || [];
+      const item = itens[index];
+      const field = e.target.dataset.field;
+      if (field && item) {
+        item[field] = e.target.value;
+      }
+    });
+
+    navLinks.forEach((link) => {
+      link.addEventListener("click", async (e) => {
+        const target = link.getAttribute("href").replace("#", "");
+        if (link.dataset.view === "home") {
+          e.preventDefault();
+          setActiveNav("home");
+          setView("home");
+          renderTabela();
+          return;
+        }
+        if (link.dataset.view === "historico") {
+          e.preventDefault();
+          setActiveNav("historico");
+          setView("historico");
+          renderHistorico();
+          return;
+        }
+        if (link.dataset.setor) {
+          e.preventDefault();
+          setorAtual = link.dataset.setor;
+          setActiveNav(setorAtual);
+          setView("setor", setorAtual);
+          await carregarItensDoSetor(setorAtual);
+          if (setorSelect) {
+            setorSelect.value = nomeSetor[setorAtual] || setorSelect.value;
+          }
+        }
+      });
+    });
+
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", () => {
+        const isOpen = shell.classList.toggle("menu-open");
+        if (backdrop) {
+          backdrop.classList.toggle("show", isOpen);
+        }
+        toggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      });
+    }
+
+    if (backdrop) {
+      backdrop.addEventListener("click", () => {
+        shell.classList.remove("menu-open");
+        backdrop.classList.remove("show");
+        if (toggleBtn) {
+          toggleBtn.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    if (setorSelect) {
+      setorSelect.addEventListener("change", async (e) => {
+        const nome = e.target.value;
+        const map = {
+          "Linha Purificador": "linha-purificador",
+          "Pre-montagem": "pre-montagem",
+          "Compressor": "compressor",
+          "Indef": "indef"
+        };
+        const novoSetor = map[nome] || "linha-purificador";
+        setorAtual = novoSetor;
+        setActiveNav("home");
+        setView("home");
+        await carregarItensDoSetor(setorAtual);
+      });
+    }
+
+    function salvarHistorico() {
+      try {
+        localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
+      } catch (err) {
+        console.warn("Nao foi possivel salvar o historico", err);
+      }
+    }
+
+    function carregarHistoricoSalvo() {
+      try {
+        const raw = localStorage.getItem(HISTORICO_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((req) => historico.push(req));
+          }
+        }
+      } catch (err) {
+        console.warn("Nao foi possivel carregar o historico", err);
+      }
+    }
+
+    function renderHistorico() {
+      historicoBody.innerHTML = "";
+      const ordenado = [...historico].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      if (limparHistoricoBtn) {
+        limparHistoricoBtn.disabled = ordenado.length === 0;
+      }
+      ordenado.forEach((req, index) => {
+        const row = document.createElement("tr");
+        row.dataset.index = index.toString();
+        row.innerHTML = `
+          <td>${req.funcionario}</td>
+          <td>${req.data}</td>
+          <td>${req.hora}</td>
+          <td><button class="btn btn-ghost btn-xs" type="button" data-action="pdf" data-index="${index}">PDF</button></td>
+        `;
+        historicoBody.appendChild(row);
+      });
+    }
+
+    function openModal(req) {
+      if (!req) return;
+      modalTitle.textContent = `Requisicao - ${req.funcionario}`;
+      modalMeta.innerHTML = `
+        <span><strong>Data:</strong> ${req.data}</span>
+        <span><strong>Horario:</strong> ${req.hora}</span>
+        <span><strong>Itens:</strong> ${(req.itens || []).length}</span>
+      `;
+      modalItensBody.innerHTML = "";
+      const itens = req.itens || [];
+      if (itens.length === 0) {
+        modalItensVazio.style.display = "";
+      } else {
+        modalItensVazio.style.display = "none";
+        itens.forEach((item) => {
+          const row = document.createElement("tr");
+          const qtdTotal = item.quantidade ?? 0;
+          row.innerHTML = `
+            <td>${item.setor}</td>
+            <td>${item.codigo}</td>
+            <td>${item.descricao}</td>
+            <td>${qtdTotal}</td>
+            <td>${item.lotes ?? ""}</td>
+          `;
+          modalItensBody.appendChild(row);
+        });
+      }
+      modalBackdrop.classList.add("show");
+      modalBackdrop.style.display = "flex";
+      document.body.classList.add("modal-open");
+      modalClose?.focus();
+    }
+
+    function closeModal() {
+      modalBackdrop.classList.remove("show");
+      modalBackdrop.style.display = "none";
+      document.body.classList.remove("modal-open");
+    }
+
+    function agruparPorSetor(itens) {
+      const mapa = new Map();
+      itens.forEach((item) => {
+        const key = item.setor || "Setor";
+        if (!mapa.has(key)) mapa.set(key, []);
+        mapa.get(key).push(item);
+      });
+      return mapa;
+    }
+
+    let jsPdfPromise = null;
+    async function ensureJsPdf() {
+      if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+      if (!jsPdfPromise) {
+        jsPdfPromise = new Promise((resolve, reject) => {
+          const finish = () => resolve(window.jspdf?.jsPDF || null);
+          const fail = (err) => reject(err || new Error("Falha ao carregar jsPDF"));
+
+          const existing = document.querySelector('script[data-jspdf]');
+          if (existing) {
+            existing.addEventListener("load", finish, { once: true });
+            existing.addEventListener("error", () => fail(new Error("Falha ao carregar jsPDF")), { once: true });
+            return;
+          }
+
+          const script = document.createElement("script");
+          script.src = "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js";
+          script.defer = true;
+          script.dataset.jspdf = "true";
+          script.onload = finish;
+          script.onerror = () => fail(new Error("Falha ao carregar jsPDF"));
+          document.head.appendChild(script);
+        }).catch((err) => {
+          console.warn(err);
+          return null;
+        });
+      }
+      return jsPdfPromise;
+    }
+
+    async function gerarPdf(itensAlterados, meta) {
+      await ensureJsPdf();
+      const jsPDF = (window.jspdf && window.jspdf.jsPDF) || null;
+      if (!jsPDF) {
+        showToast("PDF indisponivel no momento");
+        return;
+      }
+      const doc = new jsPDF();
+      const setores = agruparPorSetor(itensAlterados);
+      let first = true;
+
+      setores.forEach((itens, setor) => {
+        if (!first) doc.addPage();
+        first = false;
+
+        doc.setFontSize(16);
+        doc.text(`Requisicao - ${setor}`, 14, 20);
+        doc.setFontSize(12);
+        doc.text(`Funcionario: ${meta.funcionario}`, 14, 30);
+        doc.text(`Data/Hora: ${meta.data} ${meta.hora}`, 14, 36);
+        doc.text(`Itens alterados: ${itens.length}`, 14, 42);
+
+        let y = 52;
+        doc.setFontSize(11);
+        doc.text("Codigo", 14, y);
+        doc.text("Descricao", 44, y);
+        doc.text("Quantidade", 150, y, { align: "right" });
+        doc.text("Lotes", 190, y, { align: "right" });
+        y += 6;
+        doc.line(14, y, 200, y);
+        y += 6;
+
+        itens.forEach((item) => {
+          if (y > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          const quantidadeTotal = Number(item.quantidade) || 0;
+          const lotesVal = Number(item.lotes) || 0;
+          doc.text(String(item.codigo || ""), 14, y);
+          doc.text(String(item.descricao || "").slice(0, 60), 44, y);
+          doc.text(String(quantidadeTotal || ""), 150, y, { align: "right" });
+          doc.text(String(lotesVal || ""), 190, y, { align: "right" });
+          y += 8;
+        });
+      });
+
+      const nomeArquivo = `requisicao-${meta.data.replace(/\//g, "-")}.pdf`;
+      doc.save(nomeArquivo);
+    }
+
+    function showToast(message) {
+      if (!toastEl) return;
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toastEl.classList.remove("show"), 3200);
+    }
+
+
+    function getItensAlterados() {
+      const alterados = [];
+      itensPorSetor.forEach((itens, setorId) => {
+        const setorNome = nomeSetor[setorId] || setorId;
+        itens.forEach((item) => {
+          const quantidadeNum = Number(item.quantidade);
+          const lotesNum = Number(item.lotes);
+          if (!quantidadeNum || !lotesNum) return;
+          if (item.lotes !== item.originalLotes || item.quantidade !== item.originalQuantidade) {
+            alterados.push({
+              setor: setorNome,
+              codigo: item.codigo,
+              descricao: item.descricao,
+              quantidade: quantidadeNum,
+              lotes: lotesNum
+            });
+          }
+        });
+      });
+      return alterados;
+    }
+
+    if (requisitarBtn) {
+      requisitarBtn.addEventListener("click", async () => {
+        const funcionarioNomeInput = (document.getElementById("funcionario")?.value || "").trim();
+        if (!funcionarioNomeInput) {
+          showToast("Informe o nome do funcionario para requisitar");
+          return;
+        }
+
+        const itensAlterados = getItensAlterados();
+        if (itensAlterados.length === 0) {
+          return;
+        }
+        const data = new Date();
+        const dataTexto = data.toLocaleDateString("pt-BR");
+        const horaTexto = data.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+        const funcionarioNome = funcionarioNomeInput;
+        historico.unshift({
+          data: dataTexto,
+          hora: horaTexto,
+          funcionario: funcionarioNome,
+          itens: itensAlterados,
+          timestamp: data.getTime()
+        });
+        salvarHistorico();
+
+        await gerarPdf(itensAlterados, { funcionario: funcionarioNome, data: dataTexto, hora: horaTexto });
+
+        itensPorSetor.forEach((itens) => resetOriginalQuantidade(itens));
+        renderHistorico();
+      });
+    }
+
+    if (modalClose) {
+      modalClose.addEventListener("click", closeModal);
+    }
+
+    if (modalBackdrop) {
+      modalBackdrop.addEventListener("click", (e) => {
+        if (e.target === modalBackdrop) {
+          closeModal();
+        }
+      });
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeModal();
+      }
+    });
+
+    historicoBody.addEventListener("click", (e) => {
+      const action = e.target.dataset.action;
+      if (action === "pdf") {
+        e.stopPropagation();
+        const index = Number(e.target.dataset.index);
+        const ordenado = [...historico].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const req = ordenado[index];
+        if (!req || !req.itens || req.itens.length === 0) {
+          showToast("Registro sem itens para exportar");
+          return;
+        }
+        gerarPdf(req.itens, { funcionario: req.funcionario, data: req.data, hora: req.hora });
+        return;
+      }
+      const row = e.target.closest("tr");
+      if (!row) return;
+      const index = Number(row.dataset.index);
+      const ordenado = [...historico].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      const req = ordenado[index];
+      openModal(req);
+    });
+
+    function limparHistorico() {
+      historico.length = 0;
+      try {
+        localStorage.removeItem(HISTORICO_KEY);
+      } catch (err) {
+        console.warn("Nao foi possivel limpar o historico", err);
+      }
+      renderHistorico();
+      showToast("Historico limpo");
+    }
+
+    if (limparHistoricoBtn) {
+      limparHistoricoBtn.addEventListener("click", () => {
+        if (historico.length === 0) return;
+        const confirmar = confirm("Apagar todo o historico de requisicoes?");
+        if (!confirmar) return;
+        limparHistorico();
+      });
+    }
+
+    async function init() {
+      carregarHistoricoSalvo();
+      setActiveNav("home");
+      setView("home");
+      await carregarItensDoSetor(setorAtual);
+      renderTabela();
+      renderHistorico();
+    }
+
+    init();
+  </script>
+</body>
+</html>

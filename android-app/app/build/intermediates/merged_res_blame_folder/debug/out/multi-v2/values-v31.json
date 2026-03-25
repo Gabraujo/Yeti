@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.example.yetimobile.app-mergeDebugResources-62:/values-v31/values-v31.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\gabri\\.gradle\\caches\\transforms-3\\47cef592ac13a62d53b923d0fd781bbe\\transformed\\jetified-core-splashscreen-1.0.1\\res\\values-v31\\values-v31.xml",
+                    "from": {
+                        "startLines": "2,9",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,473",
+                        "endLines": "8,13",
+                        "endColumns": "12,12",
+                        "endOffsets": "468,697"
+                    }
+                }
+            ]
+        }
+    ]
+}

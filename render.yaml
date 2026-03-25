@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: yeti-api
+    env: java
+    plan: free
+    buildCommand: ./mvnw -DskipTests package
+    startCommand: java -Dspring.profiles.active=prod -jar target/yeti-1.0.0.jar
+    envVars:
+      - key: JAVA_VERSION
+        value: 17
+      - key: JDBC_URL
+        sync: false   # defina no dashboard com a URL JDBC do Neon (sslmode=require)
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
