@@ -1,0 +1,7 @@
+# Build outputs
+target/
+data/
+
+# Large generated/diagnostic files
+android-app/gradle-*-bin.zip
+*.hprof
