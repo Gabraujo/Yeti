@@ -1,0 +1,6 @@
+.git
+target
+data
+android-app/gradle-*-bin.zip
+*.hprof
+.mvn/wrapper/maven-wrapper.jar
